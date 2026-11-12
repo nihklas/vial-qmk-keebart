@@ -34,6 +34,7 @@ enum MACROS {
     M_GHOSTTY_SPLIT_RIGHT,
     M_SCREENMAC,
     M_SPOTLIGHT,
+    M_MINECRAFT_CHAT,
 };
 
 // clang-format off
@@ -120,7 +121,7 @@ LT(L_NUMPAD, KC_TAB),LSFT_T(DE_A),   DE_R,    LT(L_SYMBOL_2, DE_S),    LT(L_SYMB
 [L_GAMING] = LAYOUT_split_4x6_5(
       _______,_______,_______,_______,_______,_______,                            _______,_______,_______,_______,_______,_______,
       _______,   DE_Q,   DE_F,   DE_W,   DE_E,_______,                            _______,_______,_______,_______,_______,_______,
-      _______,KC_LSFT,   DE_A,   DE_S,   DE_D,_______,                            _______,_______,_______,_______,_______,_______,
+      _______,KC_LSFT,   DE_A,   DE_S,   DE_D,_______,                            _______,M_MINECRAFT_CHAT,_______,_______,_______,_______,
       _______,KC_LCTL,_______,_______,_______,_______,_______,            _______,_______,_______,_______,_______,_______,_______,
                       _______,_______,_______,_______,KC_SPACE,           _______,_______,_______,_______,_______
 ),
@@ -137,6 +138,8 @@ QK_BOOTLOADER,_______,_______,_______,_______, EE_CLR,                          
 // clang-format on
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    static bool minecraft_inside_chat = false;
+
     switch (keycode) {
         case M_UPDIR:
             if (record->event.pressed) {
@@ -188,6 +191,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 SEND_STRING(SS_LALT(SS_LGUI(" ")));
             }
             return false;
+        case M_MINECRAFT_CHAT:
+            if (record->event.pressed) {
+                SEND_STRING("t");
+                layer_off(L_GAMING);
+                minecraft_inside_chat = true;
+            }
+            return false;
+        case KC_ENTER:
+            if (minecraft_inside_chat) {
+                minecraft_inside_chat = false;
+                SEND_STRING(SS_TAP(X_ENTER));
+                layer_on(L_GAMING);
+                return false;
+            }
+            return true;
+        case KC_ESC:
+            if (minecraft_inside_chat) {
+                minecraft_inside_chat = false;
+                SEND_STRING(SS_TAP(X_ESCAPE));
+                layer_on(L_GAMING);
+                return false;
+            }
+            return true;
+        case TG(L_GAMING):
+            minecraft_inside_chat = false;
+            return true;
     }
     return true;
 }
