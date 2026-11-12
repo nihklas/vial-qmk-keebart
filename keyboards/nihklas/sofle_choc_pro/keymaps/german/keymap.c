@@ -207,6 +207,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return true;
         case KC_ESC:
+        case LT(L_DEBUG, KC_ESC):
+            // Holding the layer-tap key should still activate L_DEBUG, only its tap is an Escape
+            if (keycode != KC_ESC && !record->tap.count) {
+                return true;
+            }
             if (minecraft_inside_chat) {
                 minecraft_inside_chat = false;
                 SEND_STRING(SS_TAP(X_ESCAPE));
